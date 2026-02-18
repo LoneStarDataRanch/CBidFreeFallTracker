@@ -1,6 +1,6 @@
 # CigarBid FreeFall Tracker
 
-A bookmarklet and browser snippet for tracking prices on [CigarBid.com](https://cigarbid.com) FreeFall auctions. Runs directly in your browser with no extension or installation required.
+A bookmarklet for tracking prices on [CigarBid.com](https://cigarbid.com) FreeFall auctions. Runs directly in your browser with no extension or installation required.
 
 Built on the original work of [u/patdavid](https://www.reddit.com/r/cigars/comments/lh5rq4/cigarbid_free_fall_lowest_tracker_simple/) and u/Even-Foundation2433's auto-buy approach.
 
@@ -29,10 +29,6 @@ Built on the original work of [u/patdavid](https://www.reddit.com/r/cigars/comme
 
 ## Installation
 
-### Option 1: Bookmarklet (Recommended)
-
-The bookmarklet is the fastest way to use this. One click on any FreeFall page activates the tracker.
-
 1. Create a new bookmark in your browser bookmarks bar
 2. Set the **name** to whatever you like (e.g. `FF Tracker`)
 3. Set the **URL** to the entire contents of the code block below
@@ -47,25 +43,10 @@ javascript:%2F%2F%20%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D%3D
 
 ---
 
-### Option 2: Chrome DevTools Snippet
-
-Better for development or if you want to tweak the code easily.
-
-1. Open Chrome DevTools with `Ctrl+Shift+I`
-2. Click the **Sources** tab
-3. In the left panel, find **Snippets** (click `>>` if you don't see it)
-4. Click **+ New snippet** and name it `CigarBid FreeFall`
-5. Paste the contents of `cigarbid_freefall_v5.js` into the editor
-6. Press `Ctrl+S` to save
-
-To run: Navigate to a FreeFall auction page, open DevTools, go to Sources > Snippets, click your snippet, and press `Ctrl+Enter`.
-
----
-
 ## Usage
 
 1. Navigate to a CigarBid FreeFall auction page
-2. Click the bookmarklet (or run the snippet)
+2. Click the bookmarklet
 3. The tracker panel appears in the top-right corner of the page
 4. **Watch** the price for a few minutes to see where it's trending
 5. **Type your target price** into the input field in the panel and click Set (or press Enter)
@@ -84,12 +65,6 @@ To run: Navigate to a FreeFall auction page, open DevTools, go to Sources > Snip
 | Clear | Wipes saved session data for this auction |
 | Pause / Resume | Pause tracking without losing history |
 | Close | Remove the panel and stop tracking. Session is saved |
-
-### Console commands
-
-```js
-obsDisconnect()   // same as clicking Close
-```
 
 ---
 
@@ -127,8 +102,7 @@ The multi-tab section at the bottom of each panel shows which tab is currently c
 
 - Sessions are stored in `localStorage` and expire after 4 hours
 - The drop rate and ETA calculations only use live data points, not imported CSV data
-- The bookmarklet and snippet run identical code. The bookmarklet is minified for size
-- Syncs across devices if you use Chrome bookmark sync (bookmarklet) or DevTools sync (snippet)
+- Bookmarks sync across devices automatically if you are signed into Chrome
 
 ---
 
