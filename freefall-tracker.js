@@ -658,7 +658,7 @@ const buildUI = () => {
     panel.innerHTML = `
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="color:#555;font-size:11px;">🍬 FF Tracker v6</span>
+            <span style="color:#555;font-size:11px;"><svg width="30" height="12" viewBox="0 0 44 18" aria-hidden="true" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="4" width="33" height="10" rx="5" fill="#8b5a2b"/><rect x="7" y="4" width="5" height="10" fill="#d4a62a"/><rect x="33" y="4.5" width="8" height="9" rx="2" fill="#9b9b9b"/><rect x="40" y="5.5" width="2.5" height="7" rx="1.2" fill="#ff6a1a"/></svg>FF Tracker v6</span>
             <span id="ff-armed-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;
                 background:#2a2a2a;color:#888;border:1px solid #3a3a3a;">👁 WATCHING</span>
         </div>
