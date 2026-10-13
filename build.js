@@ -1,5 +1,6 @@
-// Builds the bookmarklet from freefall-tracker.js and puts it in README.md's code block.
-//   node build.js            update README.md
+// Builds the bookmarklet from freefall-tracker.js and puts it in README.md's code block and in
+// index.html (the drag-to-install page, made from page.html and published with GitHub Pages).
+//   node build.js            update README.md and index.html
 //   node build.js --print    print the bookmarklet instead
 // The code is URL-encoded (as encodeURIComponent, plus ' ( ) * and !) so it can be pasted
 // straight into a bookmark's URL field.
@@ -20,4 +21,12 @@ if (process.argv.includes('--print')) {
     lines[at] = bookmarklet;
     fs.writeFileSync(file, lines.join('\n'));
     console.log(`README.md updated (${bookmarklet.length} characters)`);
+
+    const version = (/FreeFall Tracker v([\d.]+)/.exec(src) || [])[1] || '';
+    const attr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const page = fs.readFileSync(path.join(__dirname, 'page.html'), 'utf8')
+        .replace('{{BOOKMARKLET}}', attr(bookmarklet))
+        .replace('{{VERSION}}', version);
+    fs.writeFileSync(path.join(__dirname, 'index.html'), page);
+    console.log(`index.html updated (v${version})`);
 }

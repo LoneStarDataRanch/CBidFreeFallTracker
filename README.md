@@ -2,6 +2,8 @@
 
 A bookmarklet for tracking prices on [CigarBid.com](https://cigarbid.com) FreeFall auctions. Runs directly in your browser with no extension or installation required.
 
+**Install by drag and drop:** open the [install page](https://lonestardataranch.github.io/CBidFreeFallTracker/) and drag the **FF Tracker** button to your bookmarks bar. (GitHub doesn't allow a draggable bookmarklet inside a README, so it lives on that page.) Or follow the steps below to paste the code into a bookmark yourself.
+
 Built on the original work of [u/patdavid](https://www.reddit.com/r/cigars/comments/lh5rq4/cigarbid_free_fall_lowest_tracker_simple/) and u/Even-Foundation2433's auto-buy approach.
 
 ---
@@ -117,7 +119,7 @@ The multi-tab section at the bottom of each panel shows which tab is currently c
 
 ## Source and building
 
-The readable source is [`freefall-tracker.js`](freefall-tracker.js). After changing it, run `node build.js` to regenerate the bookmarklet in this README (`node build.js --print` prints it instead).
+The readable source is [`freefall-tracker.js`](freefall-tracker.js). After changing it, run `node build.js` to regenerate the bookmarklet in this README and on the install page, `index.html` (built from `page.html`; `node build.js --print` prints the bookmarklet instead). The install page is published with GitHub Pages from the `main` branch.
 
 ## Credits
 

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CigarBid FreeFall Tracker</title>
+<meta name="description" content="A free bookmarklet that tracks CigarBid FreeFall auction prices loop by loop: this loop's low, the usual floor, a countdown to the bottom, target alerts and optional auto-buy.">
+<style>
+  :root { --bg: #141414; --card: #1d1d1d; --line: #2e2e2e; --text: #e9e9e9; --muted: #9a9a9a; --accent: #f08a2b; --green: #5fd068; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 16px 56px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 36px 0 10px; }
+  p, li { color: #cfcfcf; }
+  .lead { font-size: 17px; color: var(--muted); margin: 0 0 26px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px 20px; text-align: center; }
+  .bookmarklet { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px; background: var(--accent); color: #1a1a1a;
+    font-weight: 700; font-size: 17px; text-decoration: none; cursor: grab; box-shadow: 0 6px 20px rgba(240, 138, 43, .3); }
+  .bookmarklet:active { cursor: grabbing; }
+  .hint { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
+  .alt { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  button { font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #262626; color: var(--text); cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  ol, ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  code { background: #262626; padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); font-size: 14px; }
+  footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  @media (max-width: 520px) { h1 { font-size: 25px; } .bookmarklet { font-size: 16px; padding: 13px 18px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>CigarBid FreeFall Tracker</h1>
+  <p class="lead">A free bookmarklet for <a href="https://www.cigarbid.com/shop/free-fall-auctions/1913003/" rel="noopener">CigarBid FreeFall</a> auctions. It follows the price loop by loop and shows where this loop will bottom out, right on the auction page. Nothing to install. Version {{VERSION}}.</p>
+
+  <div class="card">
+    <a class="bookmarklet" href="{{BOOKMARKLET}}" title="Drag me to your bookmarks bar" onclick="alert('Drag this button to your bookmarks bar, then click the bookmark on a CigarBid FreeFall auction page.'); return false;">
+      <svg width="30" height="12" viewBox="0 0 44 18" aria-hidden="true"><rect x="1" y="4" width="33" height="10" rx="5" fill="#5a3a1c"/><rect x="7" y="4" width="5" height="10" fill="#f6d36b"/><rect x="33" y="4.5" width="8" height="9" rx="2" fill="#e2e2e2"/><rect x="40" y="5.5" width="2.5" height="7" rx="1.2" fill="#b33a00"/></svg>
+      FF Tracker
+    </a>
+    <p class="hint"><b>Drag</b> the button to your bookmarks bar (Ctrl+Shift+B or Cmd+Shift+B shows the bar). Then open a CigarBid FreeFall auction and click the bookmark.</p>
+    <div class="alt">
+      Can’t drag (phone or tablet)? Copy the code, make a new bookmark, and paste it in as the bookmark’s address.<br>
+      <button type="button" id="copy" style="margin-top:10px">Copy the bookmarklet code</button> <span id="copied" class="muted" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <h2>How FreeFall prices move</h2>
+  <p>A FreeFall price doesn’t fall once. It runs in loops: the price drops in even steps (about every 3 seconds) for roughly two minutes, holds at its floor for a few seconds, then resets and starts again. Each loop’s floor is a little different, and now and then one goes noticeably lower. The tracker follows every loop.</p>
+
+  <h2>What it shows</h2>
+  <ul>
+    <li><b>This loop’s low</b>, the <b>last five loop lows</b>, and the <b>usual floor</b> (after two complete loops)</li>
+    <li>A <b>countdown to the bottom</b> of the current loop, or “holding at” while it sits at its floor</li>
+    <li>A <b>target price</b> per tab, with sound and browser alerts, and a warning when your target is below every loop low seen so far</li>
+    <li>Optional <b>auto-buy</b>, always off until you arm it; CigarBid’s “I Confirm this Purchase” box stays your final check</li>
+    <li>Price drop rate, a sparkline, CSV save and load, and it remembers the auction if you refresh</li>
+    <li>Several tabs at once, showing which auction is closest to its target</li>
+  </ul>
+
+  <h2>Use it</h2>
+  <ol>
+    <li>Open a CigarBid FreeFall auction and click the bookmark. The panel appears at the top right.</li>
+    <li>Watch a couple of loops (about 5 minutes) so it learns the usual floor.</li>
+    <li>Type your target price and press <b>Set</b>.</li>
+    <li>Only if you want it to buy: tick “I Confirm this Purchase” on the page, then press <b>Arm Auto-Buy</b>.</li>
+  </ol>
+  <p class="muted">The floor and countdown are estimates from the loops seen so far, not a promise of where the price will go. If the page freezes when you open DevTools, turn off “pause on debugger statements” (Ctrl+F8 in the Sources tab) and refresh.</p>
+
+  <footer>
+    Source, instructions and the full code: <a href="https://github.com/LoneStarDataRanch/CBidFreeFallTracker" rel="noopener">github.com/LoneStarDataRanch/CBidFreeFallTracker</a>.<br>
+    Built on the original work of u/patdavid and u/Even-Foundation2433. Enhanced by <a href="https://lonestardataranch.com" rel="noopener">Lone Star Data Ranch</a>.<br>
+    For personal use. Automated scripts may be against CigarBid’s terms of service; use at your own risk. Not affiliated with CigarBid.
+  </footer>
+</main>
+<script>
+  document.getElementById('copy').addEventListener('click', function () {
+    var code = document.querySelector('.bookmarklet').getAttribute('href');
+    var done = function () { document.getElementById('copied').textContent = 'Copied.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done, fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var t = document.createElement('textarea');
+      t.value = code; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) { document.getElementById('copied').textContent = 'Select and copy the code from the GitHub page instead.'; }
+      document.body.removeChild(t);
+    }
+  });
+</script>
+</body>
+</html>
