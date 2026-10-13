@@ -119,7 +119,7 @@ The multi-tab section at the bottom of each panel shows which tab is currently c
 
 ## Source and building
 
-The readable source is [`freefall-tracker.js`](freefall-tracker.js). After changing it, run `node build.js` to regenerate the bookmarklet in this README and on the install page, `index.html` (built from `page.html`; `node build.js --print` prints the bookmarklet instead). The install page is published with GitHub Pages from the `main` branch.
+The readable source is [`freefall-tracker.js`](freefall-tracker.js). After changing it, run `node build.js` to regenerate the bookmarklet in this README and on the install page, `index.html` (built from `page.html`; `node build.js --print` prints the bookmarklet instead). The install page is published with GitHub Pages from the `main` branch. Its icon is `favicon.svg`, with PNG copies (`favicon-32.png`, `favicon-180.png`) for browsers that prefer them; after changing the icon, regenerate the PNGs and run `node build.js`.
 
 ## Credits
 

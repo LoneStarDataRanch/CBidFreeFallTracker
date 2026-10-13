@@ -11,6 +11,12 @@ const path = require('path');
 const src = fs.readFileSync(path.join(__dirname, 'freefall-tracker.js'), 'utf8');
 const bookmarklet = 'javascript:' + encodeURIComponent(src).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 
+function iconVersion() {
+    const hash = require('crypto').createHash('sha1');
+    for (const f of ['favicon.svg', 'favicon-32.png', 'favicon-180.png']) hash.update(fs.readFileSync(path.join(__dirname, f)));
+    return hash.digest('hex').slice(0, 8);
+}
+
 if (process.argv.includes('--print')) {
     process.stdout.write(bookmarklet + '\n');
 } else {
@@ -26,7 +32,9 @@ if (process.argv.includes('--print')) {
     const attr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const page = fs.readFileSync(path.join(__dirname, 'page.html'), 'utf8')
         .replace('{{BOOKMARKLET}}', attr(bookmarklet))
-        .replace('{{VERSION}}', version);
+        .replace('{{VERSION}}', version)
+        // A tag that changes with the icon files, so browsers don't keep an old cached icon.
+        .replace(/\{\{ICON_V\}\}/g, iconVersion());
     fs.writeFileSync(path.join(__dirname, 'index.html'), page);
     console.log(`index.html updated (v${version})`);
 }
