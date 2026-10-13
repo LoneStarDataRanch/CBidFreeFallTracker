@@ -38,7 +38,7 @@ A FreeFall price doesn't fall once. It runs in **loops**: the price drops in eve
 ## Installation
 
 1. Create a new bookmark in your browser bookmarks bar
-2. Set the **name** to whatever you like (e.g. `🚬 FF Tracker`: browsers show bookmarklets with a plain globe icon, so an emoji at the start of the name is what marks it in your bar)
+2. Set the **name** to whatever you like (e.g. `FF Tracker`)
 3. Set the **URL** to the entire contents of the code block below
 4. Save the bookmark
 5. Navigate to a CigarBid FreeFall auction page and click the bookmark
