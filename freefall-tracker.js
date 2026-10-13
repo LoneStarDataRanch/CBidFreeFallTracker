@@ -1,5 +1,5 @@
 // ============================================================
-// CigarBid FreeFall Tracker v6.0
+// CigarBid FreeFall Tracker v6.1
 // ============================================================
 // - No configuration needed. Run on any FreeFall auction page.
 // - Follows each price loop: the price falls in even steps for about
@@ -14,6 +14,9 @@
 // - Multi-tab coordination shows which tab is closest to target.
 // - Price drop rate and estimated time to target, within the
 //   current loop (resets no longer skew them).
+// - Compact panel: the details, chart and tools fold away (click a
+//   heading to open it), and – shrinks the panel to one line. It
+//   remembers what you had open.
 // ============================================================
 
 (() => {
@@ -420,6 +423,14 @@ const floorShare = () => {
     return shares.length >= 2 ? median(shares) : null;
 };
 
+// Each loop falls the same dollar amount from a start that varies a little (a 2-hour test of ~800
+// lots: e.g. $139.94 → $98.93, then $139.62 → $98.61, $41.01 every time). So the floor is this
+// loop's start minus the usual drop, which is closer than a share of the start.
+const usualDrop = () => {
+    const drops = loops.filter(l => l.start > 0).map(l => l.start - l.low);
+    return drops.length >= 2 ? median(drops) : null;
+};
+
 const deepestLoopLow = () => loops.length ? Math.min(...loops.map(l => l.low)) : null;
 
 // This loop's expected floor, and roughly how long until the price gets there.
@@ -428,11 +439,12 @@ const floorEstimate = () => {
     if (!curLoop || share === null) return null;
     // A loop we joined partway through: its real start isn't known, so use the recent loops' usual start.
     const start = curLoop.partial ? median(loops.slice(-5).map(l => l.start)) : curLoop.start;
-    const floor = Math.round(start * share * 100) / 100;
+    const drop = usualDrop();
+    const floor = Math.round((drop !== null ? start - drop : start * share) * 100) / 100;
     const si = stepInfo();
     const remaining = curLoop.last - floor;
     const secs = si && remaining > 0 ? (remaining / si.step) * si.gap / 1000 : 0;
-    return { floor, secs, share };
+    return { floor, secs, share: start > 0 ? floor / start : share };
 };
 
 const fmtSecs = (secs) => {
@@ -642,9 +654,37 @@ const updateTabStatus = () => {
 // ============================================================
 // PANEL UI
 // ============================================================
+// Which parts of the panel are open, kept across auctions and refreshes: { min, details, chart, tools, … }.
+// Any element with class ff-sec and a data-sec name folds the same way, so add-ons can use it too.
+const UI_KEY = 'ff_tracker_ui';
+const uiState = (() => { try { return JSON.parse(localStorage.getItem(UI_KEY)) || {}; } catch(e) { return {}; } })();
+const saveUiState = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(uiState)); } catch(e) {} };
+const sec = (key, label, inner) =>
+    `<div class="ff-sec" data-sec="${key}"${uiState[key] ? ' data-open' : ''}><div class="ff-sec-h">${label}</div><div class="ff-sec-b">${inner}</div></div>`;
+
 const buildUI = () => {
+    if (!document.getElementById('ff-tracker-style')) {
+        const st = document.createElement('style');
+        st.id = 'ff-tracker-style';
+        st.textContent = `
+            #ff-tracker-panel .ff-sec { margin-top:6px; }
+            #ff-tracker-panel .ff-sec-h { cursor:pointer; color:#666; font-size:10px; letter-spacing:.06em;
+                text-transform:uppercase; padding:4px 0 2px; border-top:1px solid #252525; }
+            #ff-tracker-panel .ff-sec-h:hover { color:#aaa; }
+            #ff-tracker-panel .ff-sec-h::before { content:'▸ '; }
+            #ff-tracker-panel .ff-sec[data-open] > .ff-sec-h::before { content:'▾ '; }
+            #ff-tracker-panel .ff-sec:not([data-open]) > .ff-sec-b { display:none; }
+            #ff-tracker-panel.ff-min #ff-body { display:none; }
+            #ff-tracker-panel:not(.ff-min) #ff-mini { display:none; }
+            #ff-tracker-panel.ff-min #ff-title-text { display:none; }
+            #ff-tracker-panel .ff-icon-btn { background:none; border:1px solid #333; color:#888; border-radius:4px;
+                width:20px; height:18px; line-height:14px; padding:0; cursor:pointer; font-size:12px; }
+            #ff-tracker-panel .ff-icon-btn:hover { color:#fff; border-color:#555; }`;
+        document.head.appendChild(st);
+    }
     const panel = document.createElement('div');
     panel.id = 'ff-tracker-panel';
+    if (uiState.min) panel.className = 'ff-min';
     panel.style.cssText = `
         position:fixed; top:12px; right:12px; z-index:99999;
         background:#1c1c1c; color:#eee;
@@ -658,10 +698,15 @@ const buildUI = () => {
     panel.innerHTML = `
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="color:#555;font-size:11px;"><svg width="30" height="12" viewBox="0 0 44 18" aria-hidden="true" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="3" width="34" height="12" rx="6" fill="#6e4220"/><rect x="3" y="4.4" width="31" height="3" rx="1.5" fill="#a06a38" opacity=".75"/><rect x="7" y="3" width="5.5" height="12" fill="#b3202c"/><rect x="7" y="7" width="5.5" height="4" fill="#e9c24c"/><rect x="34.5" y="3.6" width="8" height="10.8" rx="2.4" fill="#bdb8b0"/><rect x="34.3" y="3.6" width="1.2" height="10.8" fill="#8f8a83"/></svg>FF Tracker v6</span>
-            <span id="ff-armed-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;
-                background:#2a2a2a;color:#888;border:1px solid #3a3a3a;">👁 WATCHING</span>
+            <span style="color:#555;font-size:11px;"><svg width="30" height="12" viewBox="0 0 44 18" aria-hidden="true" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="3" width="34" height="12" rx="6" fill="#6e4220"/><rect x="3" y="4.4" width="31" height="3" rx="1.5" fill="#a06a38" opacity=".75"/><rect x="7" y="3" width="5.5" height="12" fill="#b3202c"/><rect x="7" y="7" width="5.5" height="4" fill="#e9c24c"/><rect x="34.5" y="3.6" width="8" height="10.8" rx="2.4" fill="#bdb8b0"/><rect x="34.3" y="3.6" width="1.2" height="10.8" fill="#8f8a83"/></svg><span id="ff-title-text">FF Tracker</span></span>
+            <span style="display:flex;gap:5px;align-items:center;">
+                <span id="ff-mini" style="color:#fff;font-weight:bold;">--</span>
+                <span id="ff-armed-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;
+                    background:#2a2a2a;color:#888;border:1px solid #3a3a3a;">👁 WATCHING</span>
+                <button id="ff-min-btn" class="ff-icon-btn" title="Shrink to one line">${uiState.min ? '+' : '–'}</button>
+            </span>
         </div>
+        <div id="ff-body">
 
         <!-- Auction name -->
         <div style="color:#666;font-size:10px;margin-bottom:6px;white-space:nowrap;
@@ -693,16 +738,20 @@ const buildUI = () => {
                 <span style="color:#555;">Bottom in</span>
                 <span id="ff-bottom" style="color:#555;">--</span>
             </div>
+            <div style="display:flex;justify-content:space-between;">
+                <span style="color:#555;">Target</span>
+                <span id="ff-target-display" style="color:#4af;">
+                    ${desiredPrice ? '$'+desiredPrice.toFixed(2) : 'not set'}
+                </span>
+            </div>
+        </div>
+
+        ${sec('details', 'Details', `
+        <div style="background:#111;border-radius:6px;padding:8px 10px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
                 <span style="color:#555;">Lowest ever</span>
                 <span id="ff-lowest" style="color:#4f4;">
                     ${lowestSeen < Infinity ? '$'+lowestSeen.toFixed(2) : '--'}
-                </span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                <span style="color:#555;">Target</span>
-                <span id="ff-target-display" style="color:#4af;">
-                    ${desiredPrice ? '$'+desiredPrice.toFixed(2) : 'not set'}
                 </span>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -721,14 +770,14 @@ const buildUI = () => {
             <div id="ff-last-lows" style="color:#888;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                 ${loops.length ? loops.slice(-5).map(l => '$' + l.low.toFixed(2)).join(' · ') : '--'}
             </div>
-        </div>
+        </div>`)}
 
-        <!-- Sparkline -->
+        ${sec('chart', 'Chart', `
         <div id="ff-spark-wrap"></div>
         <div style="display:flex;justify-content:space-between;font-size:9px;color:#3a3a3a;margin-top:2px;">
             <span id="ff-spark-label-imported"></span>
             <span>live ▶</span>
-        </div>
+        </div>`)}
 
         <!-- Alert status -->
         <div id="ff-alert-status" style="font-size:11px;min-height:15px;margin-top:5px;text-align:center;">
@@ -764,9 +813,8 @@ const buildUI = () => {
             ⚡ Arm Auto-Buy
         </button>
 
-        <!-- Multi-tab -->
-        <div style="margin-top:8px;padding-top:6px;border-top:1px solid #252525;
-            font-size:11px;line-height:1.5;" id="ff-tab-status">
+        ${sec('tools', 'Tabs &amp; tools', `
+        <div style="font-size:11px;line-height:1.5;" id="ff-tab-status">
             <span style="color:#3a3a3a;">No other tracked tabs</span>
         </div>
 
@@ -802,7 +850,7 @@ const buildUI = () => {
 
         <div style="color:#2a2a2a;font-size:9px;text-align:center;margin-top:5px;">
             ${LOT_ID.replace('ff_tracker_', '')}
-        </div>
+        </div>`)}
 
         <!-- Branding -->
         <div style="margin-top:7px;padding-top:6px;border-top:1px solid #222;text-align:center;">
@@ -813,6 +861,7 @@ const buildUI = () => {
                 onmouseout="this.style.color='#888'">
                 🤠 Lone Star Data Ranch
             </a>
+        </div>
         </div>
     `;
 
@@ -949,6 +998,23 @@ const buildUI = () => {
     // ---- Close ----
     document.getElementById('ff-close-btn').addEventListener('click', closeTracker);
 
+    // ---- Fold sections, shrink to one line ----
+    panel.addEventListener('click', e => {
+        const head = e.target.closest('.ff-sec-h');
+        if (!head || !panel.contains(head)) return;
+        const s = head.parentElement;
+        const open = !s.hasAttribute('data-open');
+        s.toggleAttribute('data-open', open);
+        uiState[s.dataset.sec] = open;
+        saveUiState();
+    });
+    document.getElementById('ff-min-btn').addEventListener('click', () => {
+        uiState.min = !panel.classList.contains('ff-min');
+        panel.classList.toggle('ff-min', uiState.min);
+        document.getElementById('ff-min-btn').textContent = uiState.min ? '+' : '–';
+        saveUiState();
+    });
+
     // ---- Draggable panel ----
     let dragging = false, ox = 0, oy = 0;
     panel.addEventListener('mousedown', e => {
@@ -988,7 +1054,7 @@ const updateUI = (current) => {
     const fe = floorEstimate();
     $('ff-floor').textContent = fe
         ? `~$${fe.floor.toFixed(2)} (${Math.round(fe.share * 100)}%)`
-        : (loops.length ? 'after 2 loops' : 'after 1st full loop');
+        : 'after 2 loops';
     const bottomEl = $('ff-bottom');
     if (curLoop && curLoop.holding) {
         bottomEl.textContent = `holding at $${curLoop.low.toFixed(2)}`;
@@ -1029,6 +1095,8 @@ const updateUI = (current) => {
         else                    color = '#f55';
     }
     $('ff-current').style.color = color;
+    const mini = $('ff-mini');
+    if (mini) { mini.textContent = `$${current.toFixed(2)}`; mini.style.color = color; }
 
     // Alert status
     const alertEl = $('ff-alert-status');
@@ -1207,7 +1275,7 @@ buildUI();
 const observer = new MutationObserver(cb);
 observer.observe(priceEl, { attributes: true, childList: true, subtree: true });
 
-console.log('%c✅ FreeFall Tracker v6.0', 'color:cyan;font-weight:bold;');
+console.log('%c✅ FreeFall Tracker v6.1', 'color:cyan;font-weight:bold;');
 console.log(`%c"${AUCTION_NAME}" | ${sessionRestored ? 'Session restored' : 'New session'} | Set your target in the panel`, 'color:cyan;');
 console.log('%cCommands: obsDisconnect() to stop', 'color:#555;');
 
