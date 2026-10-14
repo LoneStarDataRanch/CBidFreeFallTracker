@@ -1,5 +1,5 @@
 // ============================================================
-// CigarBid FreeFall Tracker v6.1
+// CigarBid FreeFall Tracker v6.2
 // ============================================================
 // - No configuration needed. Run on any FreeFall auction page.
 // - Follows each price loop: the price falls in even steps for about
@@ -698,12 +698,13 @@ const buildUI = () => {
     panel.innerHTML = `
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="color:#555;font-size:11px;"><svg width="30" height="12" viewBox="0 0 44 18" aria-hidden="true" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="3" width="34" height="12" rx="6" fill="#6e4220"/><rect x="3" y="4.4" width="31" height="3" rx="1.5" fill="#a06a38" opacity=".75"/><rect x="7" y="3" width="5.5" height="12" fill="#b3202c"/><rect x="7" y="7" width="5.5" height="4" fill="#e9c24c"/><rect x="34.5" y="3.6" width="8" height="10.8" rx="2.4" fill="#bdb8b0"/><rect x="34.3" y="3.6" width="1.2" height="10.8" fill="#8f8a83"/></svg><span id="ff-title-text">FF Tracker</span></span>
+            <span style="color:#555;font-size:11px;">🍬 <span id="ff-title-text">FF Tracker</span></span>
             <span style="display:flex;gap:5px;align-items:center;">
                 <span id="ff-mini" style="color:#fff;font-weight:bold;">--</span>
                 <span id="ff-armed-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;
                     background:#2a2a2a;color:#888;border:1px solid #3a3a3a;">👁 WATCHING</span>
                 <button id="ff-min-btn" class="ff-icon-btn" title="Shrink to one line">${uiState.min ? '+' : '–'}</button>
+                <button id="ff-x-btn" class="ff-icon-btn" title="Close the tracker (this lot's history is kept)">✕</button>
             </span>
         </div>
         <div id="ff-body">
@@ -997,6 +998,7 @@ const buildUI = () => {
 
     // ---- Close ----
     document.getElementById('ff-close-btn').addEventListener('click', closeTracker);
+    document.getElementById('ff-x-btn').addEventListener('click', closeTracker);
 
     // ---- Fold sections, shrink to one line ----
     panel.addEventListener('click', e => {
@@ -1275,7 +1277,7 @@ buildUI();
 const observer = new MutationObserver(cb);
 observer.observe(priceEl, { attributes: true, childList: true, subtree: true });
 
-console.log('%c✅ FreeFall Tracker v6.1', 'color:cyan;font-weight:bold;');
+console.log('%c✅ FreeFall Tracker v6.2', 'color:cyan;font-weight:bold;');
 console.log(`%c"${AUCTION_NAME}" | ${sessionRestored ? 'Session restored' : 'New session'} | Set your target in the panel`, 'color:cyan;');
 console.log('%cCommands: obsDisconnect() to stop', 'color:#555;');
 
